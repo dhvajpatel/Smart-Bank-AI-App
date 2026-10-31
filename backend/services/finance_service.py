@@ -10,6 +10,15 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import models
 
+# The synthetic dataset ends on 2026-08-01. Cap "today" at that date so
+# queries always land inside the data window regardless of the real current date.
+_DATA_CEILING = datetime(2026, 8, 1)
+
+
+def _now() -> datetime:
+    """Return the effective 'today' — capped at the data ceiling."""
+    return min(datetime.now(), _DATA_CEILING)
+
 
 def get_financial_health(db: Session, customer_id: str):
     customer = db.query(models.Customer).filter_by(customer_id=customer_id).first()
@@ -17,7 +26,7 @@ def get_financial_health(db: Session, customer_id: str):
         return None
 
     # Monthly spend = average of last 3 months of debit transactions
-    cutoff = (datetime(2026, 8, 1) - timedelta(days=90)).date().isoformat()
+    cutoff = (_now() - timedelta(days=90)).date().isoformat()
     debit_total = (
         db.query(func.sum(models.Transaction.amount))
         .filter(
@@ -82,8 +91,8 @@ def get_financial_health(db: Session, customer_id: str):
 
 
 def get_spend_analysis(db: Session, customer_id: str, months: int = 3):
-    cutoff = (datetime(2026, 8, 1) - timedelta(days=30 * months)).date().isoformat()
-    prev_cutoff = (datetime(2026, 8, 1) - timedelta(days=60 * months)).date().isoformat()
+    cutoff = (_now() - timedelta(days=30 * months)).date().isoformat()
+    prev_cutoff = (_now() - timedelta(days=60 * months)).date().isoformat()
 
     rows = (
         db.query(models.Transaction.category, func.sum(models.Transaction.amount))

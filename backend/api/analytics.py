@@ -9,6 +9,13 @@ from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
+# Cap "today" at the data ceiling so queries always land inside the dataset.
+_DATA_CEILING = datetime(2026, 8, 1)
+
+
+def _now() -> datetime:
+    return min(datetime.now(), _DATA_CEILING)
+
 
 @router.get("/financial-health/{customer_id}", response_model=FinancialHealthResponse)
 def financial_health(customer_id: str, db: Session = Depends(get_db)):
@@ -27,7 +34,7 @@ def spending(customer_id: str, months: int = 3, db: Session = Depends(get_db)):
 @router.get("/spending-trend/{customer_id}")
 def spending_trend(customer_id: str, months: int = 6, db: Session = Depends(get_db)):
     """Return monthly debit totals for the last N months — used for the sparkline chart."""
-    today = datetime(2026, 8, 1)
+    today = _now()
     result = []
     for i in range(months - 1, -1, -1):
         month_start = (today.replace(day=1) - timedelta(days=i * 30)).replace(day=1)
