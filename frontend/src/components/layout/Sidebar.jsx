@@ -47,7 +47,7 @@ export default function Sidebar() {
     <aside className="hidden md:flex md:flex-col w-64 shrink-0 border-r border-border bg-surface/60 backdrop-blur-md">
       <div className="flex items-center gap-2.5 px-6 h-16 border-b border-border">
         <img
-          src="/smart bank ai icon.png"
+          src="/smart-bank-ai-icon.png"
           alt="SmartBank AI"
           className="h-8 w-8 rounded-lg object-cover shrink-0"
         />
