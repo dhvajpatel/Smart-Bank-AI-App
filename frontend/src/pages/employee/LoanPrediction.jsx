@@ -77,18 +77,16 @@ export default function LoanPrediction() {
     setError(null);
     setStage(0);
 
+    // Cycle through stages repeatedly while waiting — model can take 30-60s
+    // on first call (Render free tier cold start / model load)
     const stageTimer = setInterval(() => {
-      setStage((s) => (s < STAGES.length - 1 ? s + 1 : s));
-    }, 450);
+      setStage((s) => (s + 1) % STAGES.length);
+    }, 900);
 
     try {
-      const payload = Object.fromEntries(
-        Object.entries(form).map(([k, v]) => [k, Number(v)])
+      const res = await predictLoan(
+        Object.fromEntries(Object.entries(form).map(([k, v]) => [k, Number(v)]))
       );
-      const [res] = await Promise.all([
-        predictLoan(payload),
-        new Promise((r) => setTimeout(r, STAGES.length * 450 + 200)),
-      ]);
       setResult(res);
     } catch (err) {
       setError(err);

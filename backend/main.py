@@ -46,6 +46,20 @@ app.include_router(recommendations.router)
 app.include_router(admin.router)
 
 
+@app.on_event("startup")
+async def warmup_models():
+    """
+    Eagerly load the ML models at startup so the first /loans/predict
+    request isn't hit with a 10-20 s cold-load on Render free tier.
+    """
+    try:
+        from services import loan_service
+        loan_service._load()
+        print("✓ ML models loaded and ready.")
+    except Exception as exc:
+        print(f"⚠ Model warm-up failed (will retry on first request): {exc}")
+
+
 @app.get("/")
 def root():
     return {

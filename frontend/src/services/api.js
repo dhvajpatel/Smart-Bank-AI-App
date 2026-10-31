@@ -51,7 +51,9 @@ export const getSpendingTrend = (customerId, months) =>
 // ---- Loans ------------------------------------------------------------
 
 export const predictLoan = (payload) =>
-  client.post("/loans/predict", payload).then((r) => r.data);
+  // Use a longer timeout for the predict call — model inference can be slow
+  // on Render free tier, especially after a cold start (model warm-up in progress).
+  client.post("/loans/predict", payload, { timeout: 90000 }).then((r) => r.data);
 
 // ---- Recommendations -------------------------------------------------------
 
